@@ -1,6 +1,6 @@
 /******************************************************************
  *
- *   YOUR NAME / SECTION NUMBER
+ *   Sanjana Kaushik / COMP 272
  *
  *   Note, additional comments provided throughout this source code
  *   is for educational purposes
@@ -250,7 +250,43 @@ public class CuckooHash<K, V> {
 		// Also make sure you read this method's prologue above, it should help
 		// you. Especially the two HINTS in the prologue.
 
-		return;
+		K curKey = key;
+		V curValue = value;
+		int count = 0;
+
+		while (count < CAPACITY) {
+			int pos1 = hash1(curKey);
+			if (table[pos1] == null) {
+				table[pos1] == new Bucket<>(curKey, curValue);
+				return;
+			}
+			if (table[pos1].getBucKey().equals(curKey) && table[pos1].getValue().equals(curValue)) {
+				return;
+			}
+
+			Bucket<K V> displaced = table[pos1];
+			table[pos1] = new Bucket<>(curKey, curValue);
+			curKey = displaced.getBucKey();
+			curValue = displaced.getValue();
+
+			int pos2 = hash2(curKey);
+			if (table[pos2] == null) {
+				table[pos2] = new Bucket<>(curKey, curValue);
+				return;
+			}
+			if (table[pos2].getBucKey().equals(curKey) && table[pos2].getValue().equals(curValue)) {
+				return;
+			}
+
+			displaced = table[pos2];
+			table[pos2] = new Bucket<>(curKey, curValue);
+			curKey = displaced.getBucKey();
+			curValue = displaced.getValue();
+
+			count++;
+		}
+		rehash();
+		put(curKey, curValue);
 	}
 
 
