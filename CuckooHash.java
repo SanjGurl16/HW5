@@ -263,12 +263,12 @@ public class CuckooHash<K, V> {
 			if (table[pos1].getBucKey().equals(curKey) && table[pos1].getValue().equals(curValue)) {
 				return; // If duplicate (same key and value) exists, exit
 			}
-
+	
 			Bucket<K, V> displaced = table[pos1]; // Swap elements, move displaced element
 			table[pos1] = new Bucket<>(curKey, curValue);
 			curKey = displaced.getBucKey();
 			curValue = displaced.getValue();
-
+	
 			int pos2 = hash2(curKey); // Try inserting into hash2 position
 			if (table[pos2] == null) { // If empty, place element and return
 				table[pos2] = new Bucket<>(curKey, curValue);
@@ -277,16 +277,18 @@ public class CuckooHash<K, V> {
 			if (table[pos2].getBucKey().equals(curKey) && table[pos2].getValue().equals(curValue)) {
 				return; // If duplicate (same key and value) exists, exit
 			}
-
+	
 			displaced = table[pos2];
 			table[pos2] = new Bucket<>(curKey, curValue);
 			curKey = displaced.getBucKey();
 			curValue = displaced.getValue();
-
+	
 			count++; // Increment swap count
 		}
+	
+		// Perform rehash and then retry insertion without recursion
 		rehash();
-		put(curKey, curValue); // Retry insertion after rehashing
+		put(curKey, curValue); // Retry insertion after rehashing, but avoid recursion.
 	}
 
 
