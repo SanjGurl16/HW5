@@ -1,6 +1,6 @@
 /******************************************************************
  *
- *   YOUR NAME / SECTION NUMBER
+ *   Sanjana Kaushik / COMP 272
  *
  *   This java file contains the problem solutions of isSubSet, findKthLargest,
  *   and sort2Arrays methods. You should utilize the Java Collection Framework for
@@ -34,7 +34,16 @@ class ProblemSolutions {
 
         // ADD YOU CODE HERE -- DON'T FORGET TO ADD YOR NAME AT TOP OF FILE
 
-        return false;
+        Set<Integer> set = new HashSet<>(); // Store all elements of list1 in a HashSet
+        for (int num : list1) {
+            set.add(num);
+        }
+        for (int num : list2) { // Check if all elements of list2 exist in the HashSet
+            if (!set.contains(num)) { // If any number is missing, return false
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -55,7 +64,18 @@ class ProblemSolutions {
 
         // ADD YOUR CODE HERE
 
-        return 0;
+        if (array == null || k <= 0 || k > array.length) { // Check if the input is valid
+            return 0;
+        }
+        
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>(); 
+        for (int num : array) { // Iterate through the array
+            minHeap.offer(num); // Add the current number to the heap
+            if (minHeap.size() > k) { // If heap size exceeds k, remove the smallest element
+                minHeap.poll();
+            }
+        }
+        return minHeap.peek(); // Return the k-th largest element
     }
 
 
@@ -76,7 +96,13 @@ class ProblemSolutions {
 
         // ADD YOU CODE HERE
 
-        return null;
-    }
+        int[] mergedArray = new int [array1.length + array2.length];
 
-}
+        // Copy elements from both arrays into mergedArray
+        System.arraycopy(array1, 0, mergedArray, 0, array1.length);
+        System.arraycopy(array2, 0, mergedArray, array1.length, array2.length);
+
+        Arrays.sort(mergedArray); // Sort the merged array
+        
+        return mergedArray;
+    }
