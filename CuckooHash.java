@@ -250,45 +250,33 @@ public class CuckooHash<K, V> {
 		// Also make sure you read this method's prologue above, it should help
 		// you. Especially the two HINTS in the prologue.
 
-		K curKey = key;
-		V curValue = value;
-		int count = 0;
-
-		while (count < CAPACITY) {
-			int pos1 = hash1(curKey); // Try inserting into hash1 position
-			if (table[pos1] == null) { // If empty, place element and return
-				table[pos1] = new Bucket<>(curKey, curValue);
-				return;
-			}
-			if (table[pos1].getBucKey().equals(curKey) && table[pos1].getValue().equals(curValue)) {
-				return; // If duplicate (same key and value) exists, exit
-			}
+		// Call the helper method to perform the cuckoo hashing insertion
+		putRecursive(key, value, 0);
+	}
 	
-			Bucket<K, V> displaced = table[pos1]; // Swap elements, move displaced element
-			table[pos1] = new Bucket<>(curKey, curValue);
-			curKey = displaced.getBucKey();
-			curValue = displaced.getValue();
-	
-			int pos2 = hash2(curKey); // Try inserting into hash2 position
-			if (table[pos2] == null) { // If empty, place element and return
-				table[pos2] = new Bucket<>(curKey, curValue);
-				return;
-			}
-			if (table[pos2].getBucKey().equals(curKey) && table[pos2].getValue().equals(curValue)) {
-				return; // If duplicate (same key and value) exists, exit
-			}
-	
-			displaced = table[pos2];
-			table[pos2] = new Bucket<>(curKey, curValue);
-			curKey = displaced.getBucKey();
-			curValue = displaced.getValue();
-	
-			count++; // Increment swap count
+	// Helper method for cuckoo hashing with recursion to handle kicking out elements
+	private boolean putRecursive(K key, V value, int iterations) {
+		if (iterations >= CAPACITY) {
+			// If we've reached the maximum number of iterations, grow the table and rehash
+			rehash();
+			return putRecursive(key, value, 0); // Restart the process after rehashing
 		}
 	
-		// Perform rehash and then retry insertion without recursion
-		rehash();
-		put(curKey, curValue); // Retry insertion after rehashing, but avoid recursion.
+		// Try inserting at the position determined by hash1(key)
+		int pos1 = hash1(key);
+		if (table[pos1] == null) {
+			// If the bucket is empty, insert the new key-value pair
+			table[pos1] = new Bucket<>(key, value);
+			return true;
+		} else {
+			// If the bucket is occupied, kick out the current key-value pair
+			K kickedKey = table[pos1].getBucKey();
+			V kickedValue = table[pos1].getValue();
+			// Insert the new key-value pair into the current position
+			table[pos1] = new Bucket<>(key, value);
+			// Recursively insert the kicked-out element into its alternate location
+			return putRecursive(kickedKey, kickedValue, iterations + 1);
+		}
 	}
 
 
