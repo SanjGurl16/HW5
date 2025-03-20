@@ -1,6 +1,6 @@
 /******************************************************************
  *
- *   YOUR NAME / SECTION NUMBER
+ *   Sanjana Kaushik / COMP 272
  *
  *   Note, additional comments provided throughout source code is
  *   for educational purposes.
@@ -224,7 +224,15 @@ class BloomFilter {
         // this class on available methods. You can also see how method 'add'
         // in this class uses the object.
 
-        return false;
+         for (int n = 0; n < noHashes; n++) { // Loop through each hash function
+                  long hc = hashCode(s, n); // Compute the hash code for the string using the nth hash function
+                  int bitNo = (int) (hc) & this.hashMask; // Convert the hash code to a valid bit index using the mask
+                  if (!data.get(bitNo)) { // Check if the bit at this index is set
+                           return false; // If any bit is not set, the element is definitely not in the set
+                  }
+         }
+         
+        return true; // If all bits are set, the element is probably in the set 
     }
 
 
