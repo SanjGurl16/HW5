@@ -255,27 +255,27 @@ public class CuckooHash<K, V> {
 		int count = 0;
 
 		while (count < CAPACITY) {
-			int pos1 = hash1(curKey);
-			if (table[pos1] == null) {
-				table[pos1] == new Bucket<>(curKey, curValue);
+			int pos1 = hash1(curKey); // Try inserting into hash1 position
+			if (table[pos1] == null) { // If empty, place element and return
+				table[pos1] = new Bucket<>(curKey, curValue);
 				return;
 			}
 			if (table[pos1].getBucKey().equals(curKey) && table[pos1].getValue().equals(curValue)) {
-				return;
+				return; // If duplicate (same key and value) exists, exit
 			}
 
-			Bucket<K V> displaced = table[pos1];
+			Bucket<K, V> displaced = table[pos1]; // Swap elements, move displaced element
 			table[pos1] = new Bucket<>(curKey, curValue);
 			curKey = displaced.getBucKey();
 			curValue = displaced.getValue();
 
-			int pos2 = hash2(curKey);
-			if (table[pos2] == null) {
+			int pos2 = hash2(curKey); // Try inserting into hash2 position
+			if (table[pos2] == null) { // If empty, place element and return
 				table[pos2] = new Bucket<>(curKey, curValue);
 				return;
 			}
 			if (table[pos2].getBucKey().equals(curKey) && table[pos2].getValue().equals(curValue)) {
-				return;
+				return; // If duplicate (same key and value) exists, exit
 			}
 
 			displaced = table[pos2];
@@ -283,10 +283,10 @@ public class CuckooHash<K, V> {
 			curKey = displaced.getBucKey();
 			curValue = displaced.getValue();
 
-			count++;
+			count++; // Increment swap count
 		}
 		rehash();
-		put(curKey, curValue);
+		put(curKey, curValue); // Retry insertion after rehashing
 	}
 
 
