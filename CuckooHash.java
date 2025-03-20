@@ -250,34 +250,52 @@ public class CuckooHash<K, V> {
 		// Also make sure you read this method's prologue above, it should help
 		// you. Especially the two HINTS in the prologue.
 
-		// Call the helper method to perform the cuckoo hashing insertion
-		putRecursive(key, value, 0);
-	}
-	
-	// Helper method for cuckoo hashing with recursion to handle kicking out elements
-	private boolean putRecursive(K key, V value, int iterations) {
-		if (iterations >= CAPACITY) {
-			// If we've reached the maximum number of iterations, grow the table and rehash
-			rehash();
-			return putRecursive(key, value, 0); // Restart the process after rehashing
-		}
-	
-		// Try inserting at the position determined by hash1(key)
-		int pos1 = hash1(key);
-		if (table[pos1] == null) {
-			// If the bucket is empty, insert the new key-value pair
-			table[pos1] = new Bucket<>(key, value);
-			return true;
-		} else {
-			// If the bucket is occupied, kick out the current key-value pair
-			K kickedKey = table[pos1].getBucKey();
-			V kickedValue = table[pos1].getValue();
-			// Insert the new key-value pair into the current position
-			table[pos1] = new Bucket<>(key, value);
-			// Recursively insert the kicked-out element into its alternate location
-			return putRecursive(kickedKey, kickedValue, iterations + 1);
-		}
-	}
+	int iterations = 0;
+    K evictedKey = key;
+    V evictedValue = value;
+    
+    while (iterations < CAPACITY) {  // Prevent infinite loops by limiting iterations
+        int pos1 = hash1(evictedKey);
+        int pos2 = hash2(evictedKey);
+
+        if (table[pos1] == null) {
+            table[pos1] = new Bucket<>(evictedKey, evictedValue);
+            return;
+        } else if (table[pos1].getBucKey().equals(evictedKey)) {
+            table[pos1] = new Bucket<>(evictedKey, evictedValue);
+            return;
+        } else {
+            // Evict the current key-value pair at pos1 and try inserting the evicted key
+            evictedKey = table[pos1].getBucKey();
+            evictedValue = table[pos1].getValue();
+            table[pos1] = new Bucket<>(key, value);
+        }
+
+        // Try inserting at the second position (pos2)
+        if (table[pos2] == null) {
+            table[pos2] = new Bucket<>(evictedKey, evictedValue);
+            return;
+        } else if (table[pos2].getBucKey().equals(evictedKey)) {
+            table[pos2] = new Bucket<>(evictedKey, evictedValue);
+            return;
+        } else {
+            // Evict the current key-value pair at pos2 and continue the loop
+            evictedKey = table[pos2].getBucKey();
+            evictedValue = table[pos2].getValue();
+            table[pos2] = new Bucket<>(key, value);
+        }
+
+        iterations++;
+
+        // If cycle detected (iterations exceed table capacity), rehash the table
+        if (iterations == CAPACITY) {
+            rehash();
+            // Retry the insertion after rehashing
+            put(evictedKey, evictedValue);
+            return;
+        }
+    }
+}
 
 
 	/**
