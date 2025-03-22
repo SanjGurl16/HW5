@@ -282,10 +282,8 @@ public class CuckooHash<K, V> {
 		}
 	
 		// If a cycle is detected, rehash the table and retry insertion
-		if (iterations == CAPACITY) {
 			rehash();
 			put(buck.getBucKey(), buck.getValue());
-		}
 }
 
 
