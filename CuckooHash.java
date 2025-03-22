@@ -251,12 +251,11 @@ public class CuckooHash<K, V> {
 		// you. Especially the two HINTS in the prologue.
 
 		int iterations = 0;
-		Bucket<K, V> buck = new Bucket<>(key, value);
+		Bucket<K, V> buck = new Bucket<K, V>(key, value);
 		int pos = hash1(key);
 	
 		// If the key already exists, update its value
-		if (table[pos] != null && table[pos].getBucKey().equals(key)) {
-			table[pos] = buck;
+		if (table[pos] != null && table[pos].getValue().equals(value)) {
 			return;
 		}
 	
@@ -268,20 +267,25 @@ public class CuckooHash<K, V> {
 			}
 	
 			// Swap bucket with existing one
-			Bucket<K, V> temp = table[pos];
+			Bucket<K, V> copy = table[pos];
 			table[pos] = buck;
-			buck = temp;
+			buck = copy;
 	
 			// Determine next position using secondary hash function
-			int newPos = hash1(buck.getBucKey());
-			pos = (newPos == pos) ? hash2(buck.getBucKey()) : newPos;
+			int idx = hash1(buck.getBucKey());
+			if (idx == pos) 
+				pos = hash2(buck.getBucKey());
+			else
+				pos = idx;
 	
 			iterations++;
 		}
 	
 		// If a cycle is detected, rehash the table and retry insertion
-		rehash();
-		put(buck.getBucKey(), buck.getValue());
+		if (iterations == CAPACITY) {
+			rehash();
+			put(buck.getBucKey(), buck.getValue());
+		}
 }
 
 
