@@ -251,14 +251,20 @@ public class CuckooHash<K, V> {
 		// you. Especially the two HINTS in the prologue.
 
 	int iterations = 0;
-    K evictedKey = key;
-    V evictedValue = value;
+    //K evictedKey = key;
+    //V evictedValue = value;
+
+	Bucket<K, V> buck = new Bucket<K, V>(key, value);
+	int pos = hash1(key);
+	if (table[pos] != null && table[pos].getValue().equals(value)) {
+		return;
+	}
     
     while (iterations < CAPACITY) {  // Prevent infinite loops by limiting iterations
-        int pos1 = hash1(evictedKey);
-        int pos2 = hash2(evictedKey);
+        //int pos1 = hash1(evictedKey);
+        //int pos2 = hash2(evictedKey);
 
-        if (table[pos1] == null) {
+        /*if (table[pos1] == null) {
             table[pos1] = new Bucket<>(evictedKey, evictedValue);
             return;
         } else if (table[pos1].getBucKey().equals(evictedKey)) {
@@ -269,10 +275,18 @@ public class CuckooHash<K, V> {
             evictedKey = table[pos1].getBucKey();
             evictedValue = table[pos1].getValue();
             table[pos1] = new Bucket<>(key, value);
-        }
+        }*/
+
+		if (table[pos] == null) {
+			table[pos] = buck;
+			return;
+		}
+		Bucket<K, V> copy = table[pos];
+		table[pos] = buck;
+		buck = copy;
 
         // Try inserting at the second position (pos2)
-        if (table[pos2] == null) {
+        /*if (table[pos2] == null) {
             table[pos2] = new Bucket<>(evictedKey, evictedValue);
             return;
         } else if (table[pos2].getBucKey().equals(evictedKey)) {
@@ -283,18 +297,27 @@ public class CuckooHash<K, V> {
             evictedKey = table[pos2].getBucKey();
             evictedValue = table[pos2].getValue();
             table[pos2] = new Bucket<>(key, value);
-        }
+        }*/
+
+		int idx = hash1(buck.getBucKey());
+		if (idx == pos)
+			pos = hash2(buck.getBucKey());
+		else
+			pos = idx;
 
         iterations++;
 
         // If cycle detected (iterations exceed table capacity), rehash the table
-        if (iterations == CAPACITY) {
+        /*if (iterations == CAPACITY) {
             rehash();
             // Retry the insertion after rehashing
             put(evictedKey, evictedValue);
             return;
-        }
+        }*/
     }
+
+	rehash();
+	put(buck.getBucKey(), buck.getValue());
 }
 
 
