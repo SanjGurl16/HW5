@@ -250,36 +250,38 @@ public class CuckooHash<K, V> {
 		// Also make sure you read this method's prologue above, it should help
 		// you. Especially the two HINTS in the prologue.
 
-	int iterations = 0;
-	Bucket<K, V> buck = new Bucket<K, V>(key, value);
-	int pos = hash1(key);
+		int iterations = 0;
+		Bucket<K, V> buck = new Bucket<>(key, value);
+		int pos = hash1(key);
 	
-	if (table[pos] != null && table[pos].getBucKey().equals(key)) {
-		table[pos] = buck;
-		return;
-	}
-    
-    while (iterations < CAPACITY) {  // Prevent infinite loops by limiting iterations
-		if (table[pos] == null) {
+		// If the key already exists, update its value
+		if (table[pos] != null && table[pos].getBucKey().equals(key)) {
 			table[pos] = buck;
 			return;
 		}
-		
-		Bucket<K, V> copy = table[pos];
-		table[pos] = buck;
-		buck = copy;
-
-		int idx = hash1(buck.getBucKey());
-		if (idx == pos)
-			pos = hash2(buck.getBucKey());
-		else
-			pos = idx;
-
-        iterations++;
-    }
-
-	rehash();
-	put(buck.getBucKey(), buck.getValue());
+	
+		while (iterations < CAPACITY) {
+			// Try inserting into the first available position
+			if (table[pos] == null) {
+				table[pos] = buck;
+				return;
+			}
+	
+			// Swap bucket with existing one
+			Bucket<K, V> temp = table[pos];
+			table[pos] = buck;
+			buck = temp;
+	
+			// Determine next position using secondary hash function
+			int newPos = hash1(buck.getBucKey());
+			pos = (newPos == pos) ? hash2(buck.getBucKey()) : newPos;
+	
+			iterations++;
+		}
+	
+		// If a cycle is detected, rehash the table and retry insertion
+		rehash();
+		put(buck.getBucKey(), buck.getValue());
 }
 
 
